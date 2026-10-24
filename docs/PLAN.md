@@ -29,7 +29,7 @@ keeping the main idea: **one record per class, one access check.**
 
 | Item | v2 |
 |---|---|
-| Folder | `E:\LEVEL-2\TutorSpace-2` |
+| Folder | `E:\LEVEL-2\tutorspace-2` |
 | GitHub | new repo `mohtasim22/TutorSpace-2` |
 | Database | new Neon database (Singapore) |
 | Hosting | one Vercel project |
