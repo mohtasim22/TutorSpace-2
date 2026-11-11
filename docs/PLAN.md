@@ -6,7 +6,7 @@ milestone must leave the app working and deployed. Rules and design are in
 
 ## 1. Goal
 
-Rebuild TutorSpace as **one Next.js app** with the **Option C (Night)** design,
+Rebuild TutorSpace as **one Next.js app** with the **Chalkboard** design,
 keeping the main idea: **one record per class, one access check.**
 
 ## 2. How booking works
@@ -65,10 +65,18 @@ v1 (`E:\LEVEL-2\TutorSpace`) stays live and unchanged.
 ## 6. Milestones
 
 ### M1 — Foundation
-Repo, database, Option C theme (Tailwind + shadcn tokens, Onest + JetBrains Mono),
+Repo, database, Chalkboard theme (Tailwind + shadcn tokens, Bricolage Grotesque + Hanken Grotesk),
 shared UI parts (buttons, inputs, cards, badges, tables, empty states), login with
 email and Google, role-based page shells (student / tutor / admin), CI checks
 (typecheck, test, build) on GitHub Actions.
+- **Push to GitHub early** (right after the theme stage) so the code has a backup,
+  and connect Vercel at the same time, so every later stage is tested on the real
+  site.
+- **Email is set up with login** (Nodemailer + SMTP), because password reset
+  needs it. Decide there whether new accounts must verify their email.
+- **CI gets its own Neon branch (`test`)**, because rule tests such as the seat
+  race need a real database.
+- Register the **SSLCommerz sandbox store** during M1; approval can take time.
 **Done when:** you can sign in as each role and see an empty dashboard; it is
 deployed on Vercel.
 
@@ -78,18 +86,24 @@ lock rules, tutor search with filters, tutor profile page with open classes.
 **Done when:** a tutor creates a 5-seat class; a student finds it on the tutor's
 profile; editing a started class is refused by the server.
 
-### M3 — Booking & payment
+### M3a — Booking & payment
 Seat hold, SSLCommerz payment session in BDT (phone asked once), IPN and return
-routes that confirm through the Validation API, hold expiry, late-payment handling
-(confirm if a seat is free, otherwise automatic refund), cancel with refund
-preview, refund at SSLCommerz with status tracking, booking lists for student and
-tutor.
+routes that confirm through the Validation API, hold expiry, booking lists for
+student and tutor.
+**Hold expiry:** seat counting ignores a hold whose `hold_expires_at` has passed,
+so no background job is needed for correctness. The reminders cron only tidies
+the status of old holds to `EXPIRED`.
 **Done when:** book → pay in the SSLCommerz sandbox → confirmed; a full room
-blocks booking; an unpaid hold expires; cancel 24 h+ refunds; rule tests pass
-(seat race, failed validation and wrong amount do not confirm, IPN + return
-confirm only once, IPN for a cancelled booking changes nothing, late payment
-confirmed or refunded, refund boundary at exactly 24 h, retry never refunds
-twice). Also check in the sandbox whether a reused `refund_trans_id` is rejected.
+blocks booking; an unpaid hold expires; rule tests pass (seat race, failed
+validation and wrong amount do not confirm, IPN + return confirm only once).
+
+### M3b — Cancel, refunds & late payments
+Cancel with refund preview, refund at SSLCommerz with status tracking,
+late-payment handling (confirm if a seat is free, otherwise automatic refund).
+**Done when:** cancel 24 h+ refunds; rule tests pass (IPN for a cancelled booking
+changes nothing, late payment confirmed or refunded, refund boundary at exactly
+24 h, retry never refunds twice). Also check in the sandbox whether a reused
+`refund_trans_id` is rejected.
 
 ### M4 — Live class
 The one access check, private Daily rooms with personal tokens, tldraw whiteboard
@@ -133,6 +147,9 @@ limit instead of session type, seat hold, SSLCommerz instead of Stripe, tests),
 note that going live needs a fixed server IP for SSLCommerz refunds, update the
 defence page,
 re-run Turnitin.
+State **tutor payouts as out of scope** (the platform collects payments; paying
+tutors out is future work). Include **v1-vs-v2 evidence** collected from M1
+onwards: number of rule tests, the seat-race test result, page speed.
 **Done when:** report v2 is ready for the supervisor.
 
 ## 7. Rules for every milestone
@@ -142,8 +159,16 @@ re-run Turnitin.
   plain-language defence briefing.
 - Secrets never in `NEXT_PUBLIC_` variables; never commit `.env`.
 - Rules live in `src/server` and are checked on the server.
-- Every screen follows the Option C mockups:
+- Every screen follows the **Chalkboard** look (page "D1 · Chalkboard" on the second canvas below). The first Option C (Night) mockups are kept only as layout references:
   https://claude.ai/artifact/2kNv8VT3z5ixnrwqGAKbsJ
+  The v2 booking screens (seat hold, pay, cancel with refund preview, room limit)
+  are on a second canvas: https://claude.ai/artifact/UJqjjWHzm9nxuaMH6i9gXU
+  The written design rules: https://claude.ai/artifact/9EJhkKYWaD64tWw4y7rhk8
+- **Where a mockup and a rule disagree, the rule wins.** The first mockups still
+  show "group", "Waiting" and pay-after-booking; v2 has none of these.
+- **Time:** store every time in UTC; show every time in Bangladesh time
+  (Asia/Dhaka). The 24-hour refund rule, the class lock and the join window are
+  all tested against this.
 
 ## 8. Copying code from Claude chat
 
